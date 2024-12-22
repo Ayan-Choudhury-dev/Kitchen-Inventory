@@ -1,6 +1,6 @@
-@import 'tailwindcss/base';
-@import 'tailwindcss/components';
-@import 'tailwindcss/utilities';
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 /* ... */
 .logo.vite:hover {
@@ -120,4 +120,3 @@
       background-color: #0f0f0f69;
     }
   }
-  

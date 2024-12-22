@@ -1,5 +1,6 @@
 <script lang="ts">
   import { invoke } from "@tauri-apps/api/core";
+  import "../app.css";
 
   let name = $state("");
   let greetMsg = $state("");
@@ -13,7 +14,7 @@
 
 <main class="container">
   <h1>Welcome to Tauri + Svelte</h1>
- <div class=" text-blue-600">Lorem ipsum</div>
+ <div class=" text-blue-600 py-4">Lorem ipsum</div>
 
   <div class="row">
     <a href="https://vitejs.dev" target="_blank">
