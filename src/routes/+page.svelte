@@ -1,6 +1,7 @@
 <script lang="ts">
   import { invoke } from "@tauri-apps/api/core";
   import "../app.css";
+  import Button from "@/components/ui/button/button.svelte";
 
   let name = $state("");
   let greetMsg = $state("");
@@ -15,6 +16,8 @@
 <main class="container">
   <h1>Welcome to Tauri + Svelte</h1>
  <div class=" text-blue-600 py-4">Lorem ipsum</div>
+
+  <Button>Click me</Button>
 
   <div class="row">
     <a href="https://vitejs.dev" target="_blank">
@@ -31,7 +34,7 @@
 
   <form class="row" onsubmit={greet}>
     <input id="greet-input" placeholder="Enter a name..." bind:value={name} />
-    <button type="submit">Greet</button>
+    <Button type="submit">Greet</Button>
   </form>
   <p>{greetMsg}</p>
 </main>
