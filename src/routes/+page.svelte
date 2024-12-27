@@ -3,12 +3,17 @@
   import "../app.css";
   import Button from "@/components/ui/button/button.svelte";
 
-  let name = $state("");
-  let greetMsg = $state("");
+  let name = "";
+  let greetMsg = "";
+
 
   async function greet(event: Event) {
     event.preventDefault();
     // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
+    if(name === "") {
+      greetMsg = "Please enter a name!";
+      return;
+    }
     greetMsg = await invoke("greet", { name });
   }
 </script>
@@ -17,7 +22,6 @@
   <h1>Welcome to Tauri + Svelte</h1>
  <div class=" text-blue-600 py-4">Lorem ipsum</div>
 
-  <Button>Click me</Button>
 
   <div class="row">
     <a href="https://vitejs.dev" target="_blank">
@@ -36,6 +40,8 @@
     <input id="greet-input" placeholder="Enter a name..." bind:value={name} />
     <Button type="submit">Greet</Button>
   </form>
+
+
   <p>{greetMsg}</p>
 </main>
 
