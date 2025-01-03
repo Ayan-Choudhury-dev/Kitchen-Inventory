@@ -3,53 +3,139 @@
   import "../app.css";
   import Button from "@/components/ui/button/button.svelte";
   import Input from "@/components/ui/input/input.svelte";
+  import { Trash } from "lucide-svelte";
+  import Database from "@tauri-apps/plugin-sql";
+
+  type User = {
+    id: number;
+    name: string;
+    email: string;
+  };
 
   let name = "";
-  let greetMsg = "";
-  let num1 = 0;
-  let num2 = 0;
-  let sum = 0;
+  let email = "";
+  let isLoadingUsers = true;
+  let users: User[] = [];
+  let errorMessage = "";
 
+  async function loadUsers() {
+    try {
+      const db = await Database.load("sqlite:users.db");
 
+      // Ensure table exists
+      await db.execute(`
+        CREATE TABLE IF NOT EXISTS users (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          name TEXT NOT NULL,
+          email TEXT
+        )
+      `);
 
-  // async function greet(event: Event) {
-  //   event.preventDefault();
-  //   // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
-  //   if(name === "") {
-  //     greetMsg = "Please enter a name!";
-  //     return;
+      const dbUsers = await db.select<User[]>("SELECT * FROM users");
+
+      errorMessage = "";
+      users = dbUsers;
+      isLoadingUsers = false;
+    } catch (error) {
+      console.error(error);
+      errorMessage = "Failed to load users check console for details";
+    }
+  }
+
+  async function deleteUser(id: number) {
+    try {
+      const db = await Database.load("sqlite:users.db");
+      await db.execute("DELETE FROM users WHERE id = $1", [id]);
+      await loadUsers();
+    } catch (error) {
+      console.error(error);
+      errorMessage = "Failed to delete user";
+    }
+  }
+
+  // async function setUser(user: User) {
+  //   try {
+  //     isLoadingUsers = true;
+  //     const db = await Database.load("sqlite:users.db");
+  //     await db.execute("INSERT INTO users (name, email) VALUES ($1, $2)", [
+  //       name,
+  //       user.email,
+  //     ]);
+
+  //     await loadUsers();
+  //   } catch (error) {
+  //     console.error(error);
+  //     errorMessage = "Failed to add user check console for details";
   //   }
-  //   greetMsg = await invoke("greet", { name });
   // }
 
-  async function add(event: Event) {
-    event.preventDefault();
-    sum = await invoke("add", { a: parseInt(num1), b: parseInt(num2) });
-  }
+  // Initial load
+  loadUsers();
 </script>
 
-<main class="container">
-  <h1>Welcome to Tauri + Svelte</h1>
+<main class="container mx-auto p-4 max-w-2xl">
+  <div id="form" class="fill-slate-300">
+    <h1 class="text-2xl font-bold mb-6 text-left">User Management</h1>
+
+    <!-- Add User Form -->
+    <form
+      class="mb-8 flex gap-4"
+      on:submit={async (e) => {
+        e.preventDefault();
+        try {
+          isLoadingUsers = true;
+          const db = await Database.load("sqlite:users.db");
+          await db.execute("INSERT INTO users (name, email) VALUES ($1, $2)", [
+            name,
+            email,
+          ]);
+          await loadUsers();
+        } catch (error) {
+          console.error(error);
+          errorMessage = "Failed to add user";
+        }
+      }}
+    >
+      <div>
+        <Input id="name-input" placeholder="Enter name..." bind:value={name} />
+      </div>
+      <div>
+        <Input
+          id="email-input"
+          type="email"
+          placeholder="Enter email..."
+          bind:value={email}
+        />
+      </div>
+      <Button type="submit">Add User</Button>
+    </form>
+  </div>
 
 
+  <!-- User List -->
 
- <form class="row flex " onsubmit={add}>
-    <Input id="num1" placeholder="Enter a number..." bind:value={num1} />
-    <Input id="num2" placeholder="Enter a number..." bind:value={num2} />
-     <!-- <input id="num1" type="number" placeholder="Enter a number..." bind:value={num1} />
-    <input id="num2" type="number" placeholder="Enter a number..." bind:value={num2} /> -->
-    <Button type="submit">Add</Button>
- </form>
+  <div class="space-y-4">
+    <h2 class="text-xl font-semibold text-left">Users</h2>
+    {#if users.length === 0}
+      <p class="text-gray-500">No users found</p>
+    {:else}
+      <div id="user-list-container" class="overflow-y-auto max-h-[500px]">
+        {#each users as user (user.id)}
+          <div class="py-3 px-4 bg-slate-100 rounded-md my-3 flex gap-4 justify-between" id="user-list-box">
+            <div class="flex gap-4 items-center">
+              <h3 class="font-medium text-slate-500 min-w-20 text-left">{user.name}</h3>
+              <p class="text-slate-500">{user.email}</p>
+            </div>
+            <Button variant="outline" onclick={() => deleteUser(user.id)}>
+              <Trash />
+            </Button>
 
-  <p>Sum: {sum}</p>
-
-<!--  -->
-
-
-  <!-- <form class="row" onsubmit={greet}>
-    <input id="greet-input" placeholder="Enter a name..." bind:value={name} />
-    <Button type="submit">Greet</Button>
-  </form>
-  <p>{greetMsg}</p> -->
+          </div>
+        {/each}
+      </div>
+    {/if}
+  </div>
+  {#if errorMessage}
+    <p class="text-red-500 mb-4">{errorMessage}</p>
+  {/if}
 </main>
-
